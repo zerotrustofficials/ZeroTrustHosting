@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SachuZeroTrust — Developer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --neon: #ffffff;
+      --neon-glow: rgba(255,255,255,0.8);
+      --neon-soft: rgba(255,255,255,0.4);
+      --neon-dim: rgba(255,255,255,0.15);
+    }
+
+    html { width: 100%; height: 100%; background: #000; }
+    body {
+      width: 100%; min-height: 100%;
+      overflow-y: hidden;
+      background: #000;
+      font-family: 'Rajdhani', sans-serif;
+      cursor: default;
+    }
+    body.unlocked {
+      overflow-y: auto;
+    }
+
+    /* ─── VIDEO BACKGROUND ─── */
+    #bg-video {
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    /* ─── ENTRANCE SCREEN ─── */
+    #entrance {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(28px) saturate(0.4) brightness(1.1);
+      -webkit-backdrop-filter: blur(28px) saturate(0.4) brightness(1.1);
+      transition: opacity 0.9s ease, backdrop-filter 0.9s ease;
+      cursor: pointer;
+    }
+    #entrance.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .tap-ring {
+      width: 160px; height: 160px;
+      border: 1.5px solid rgba(255,255,255,0.6);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      animation: pulse-ring 2.4s ease-in-out infinite;
+    }
+    .tap-ring::before {
+      content: '';
+      position: absolute;
+      inset: -18px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      animation: pulse-ring 2.4s ease-in-out infinite 0.4s;
+    }
+    .tap-ring::after {
+      content: '';
+      position: absolute;
+      inset: -36px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      animation: pulse-ring 2.4s ease-in-out infinite 0.8s;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: 0.6; }
+    }
+
+    .tap-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      color: #fff;
+      text-align: center;
+      text-shadow: 0 0 20px rgba(255,255,255,0.9);
+    }
+
+    .tap-sub {
+      margin-top: 24px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+    }
+
+    /* ─── PORTFOLIO SCREEN ─── */
+    #portfolio {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.9s ease 0.3s;
+      overflow: hidden;
+    }
+    #portfolio.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ─── SCROLL CONTAINER (the real scroller) ─── */
+    #scroll-root {
+      display: none;
+      position: relative;
+      z-index: 50;
+      width: 100%;
+      padding: 60px 24px 80px;
+      flex-direction: column;
+      align-items: center;
+    }
+    #scroll-root.visible {
+      display: flex;
+    }
+
+    /* subtle dark vignette so text pops over video */
+    #portfolio::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.3) 100%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* ─── PROFILE CARD ─── */
+    .card {
+      width: 100%;
+      max-width: 480px;
+      padding: 44px 40px 36px;
+      position: relative;
+      background: rgba(255,255,255,0.01);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 2px;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 0 30px rgba(255,255,255,0.04),
+        inset 0 0 40px rgba(255,255,255,0.01);
+    }
+
+    /* corner accents */
+    .card::before, .card::after {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+    }
+    .card::before {
+      top: -1px; left: -1px;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
+      box-shadow: -2px -2px 12px rgba(255,255,255,0.6);
+    }
+    .card::after {
+      bottom: -1px; right: -1px;
+      border-bottom: 2px solid #fff;
+      border-right: 2px solid #fff;
+      box-shadow: 2px 2px 12px rgba(255,255,255,0.6);
+    }
+
+    .card-corner-br::before {
+      content: '';
+      position: absolute;
+      top: -1px; right: -1px;
+      width: 20px; height: 20px;
+      border-top: 2px solid #fff;
+      border-right: 2px solid #fff;
+      box-shadow: 2px -2px 12px rgba(255,255,255,0.6);
+    }
+    .card-corner-bl::before {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: -1px;
+      width: 20px; height: 20px;
+      border-bottom: 2px solid #fff;
+      border-left: 2px solid #fff;
+      box-shadow: -2px 2px 12px rgba(255,255,255,0.6);
+    }
+
+    /* ─── AVATAR ─── */
+    .avatar-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .avatar {
+      width: 88px; height: 88px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.7);
+      box-shadow:
+        0 0 0 4px rgba(255,255,255,0.08),
+        0 0 24px rgba(255,255,255,0.5),
+        0 0 50px rgba(255,255,255,0.2);
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 18px #fff, 0 0 40px rgba(255,255,255,0.6);
+      position: relative;
+      overflow: hidden;
+    }
+    .avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(transparent 0deg, rgba(255,255,255,0.15) 180deg, transparent 360deg);
+      animation: spin-glow 6s linear infinite;
+    }
+    @keyframes spin-glow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ─── NAME & TAGLINE ─── */
+    .name {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.55rem;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-align: center;
+      text-shadow:
+        0 0 8px #fff,
+        0 0 20px rgba(255,255,255,0.9),
+        0 0 50px rgba(255,255,255,0.5),
+        0 0 90px rgba(255,255,255,0.2);
+      animation: flicker 8s ease-in-out infinite;
+    }
+    @keyframes flicker {
+      0%, 94%, 96%, 100% { opacity: 1; }
+      95% { opacity: 0.85; }
+    }
+
+    .tagline {
+      text-align: center;
+      margin-top: 6px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 300;
+      font-size: 0.72rem;
+      letter-spacing: 0.55em;
+      color: rgba(255,255,255,0.55);
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(255,255,255,0.4);
+    }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      margin: 22px 0 18px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+      box-shadow: 0 0 8px rgba(255,255,255,0.3);
+    }
+
+    /* ─── LINKS GRID ─── */
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 9px 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 2px;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .link-row::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.25s ease;
+    }
+    .link-row:hover::before {
+      background: rgba(255,255,255,0.06);
+    }
+    .link-row:hover {
+      border-color: rgba(255,255,255,0.4);
+      box-shadow: 0 0 14px rgba(255,255,255,0.15), inset 0 0 14px rgba(255,255,255,0.04);
+      transform: translateX(3px);
+    }
+
+    .link-icon {
+      width: 28px; height: 28px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.6));
+    }
+    .link-icon svg {
+      width: 18px; height: 18px;
+      fill: #fff;
+    }
+
+    .link-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .link-platform {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.3em;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+    }
+    .link-value {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 10px rgba(255,255,255,0.4);
+    }
+    .link-value.dimmed {
+      color: rgba(255,255,255,0.3);
+      font-style: italic;
+      font-size: 0.78rem;
+    }
+
+    .link-arrow {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.25);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .link-row:hover .link-arrow {
+      color: rgba(255,255,255,0.8);
+      transform: translateX(3px);
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      color: rgba(255,255,255,0.2);
+      font-family: 'Orbitron', monospace;
+    }
+
+    /* ─── ENTRANCE ANIMATIONS for card ─── */
+    .card {
+      animation: none;
+    }
+    #portfolio.visible .card {
+      animation: card-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes card-in {
+      from { transform: translateY(28px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ─── SCANLINE OVERLAY ─── */
+    #scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.04) 2px,
+        rgba(0,0,0,0.04) 4px
+      );
+      pointer-events: none;
+    }
+
+    @media (max-width: 500px) {
+      .card { padding: 32px 22px 28px; }
+      .name { font-size: 1.2rem; }
+    }
+
+    /* ─── SCROLL INDICATOR ─── */
+    .scroll-hint {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 1s ease 1.5s;
+    }
+    #portfolio.visible .scroll-hint { opacity: 1; }
+    .scroll-hint span {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 0.35em;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+    }
+    .scroll-arrow {
+      width: 18px; height: 18px;
+      border-right: 1.5px solid rgba(255,255,255,0.35);
+      border-bottom: 1.5px solid rgba(255,255,255,0.35);
+      transform: rotate(45deg);
+      animation: bounce-down 1.6s ease-in-out infinite;
+    }
+    @keyframes bounce-down {
+      0%, 100% { transform: rotate(45deg) translateY(0); opacity: 0.4; }
+      50% { transform: rotate(45deg) translateY(5px); opacity: 1; }
+    }
+
+    /* ─── SECOND PAGE ─── */
+    #page2 {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 0 24px;
+    }
+
+    .desc-card {
+      width: 100%;
+      padding: 36px 32px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(0,255,200,0.25);
+      border-radius: 2px;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0,255,200,0.08), inset 0 0 30px rgba(0,255,200,0.03);
+    }
+    .desc-card::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px;
+      width: 22px; height: 22px;
+      border-top: 2px solid #00ffc8;
+      border-left: 2px solid #00ffc8;
+      box-shadow: -2px -2px 14px rgba(0,255,200,0.7);
+    }
+    .desc-card::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; right: -1px;
+      width: 22px; height: 22px;
+      border-bottom: 2px solid #00ffc8;
+      border-right: 2px solid #00ffc8;
+      box-shadow: 2px 2px 14px rgba(0,255,200,0.7);
+    }
+    .desc-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.4em;
+      color: rgba(0,255,200,0.5);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .desc-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 2;
+      letter-spacing: 0.07em;
+      color: #00ffc8;
+      text-shadow: 0 0 8px #00ffc8, 0 0 20px rgba(0,255,200,0.8), 0 0 40px rgba(0,255,200,0.4);
+    }
+    .cursor-blink {
+      display: inline-block;
+      width: 2px; height: 1em;
+      background: #00ffc8;
+      box-shadow: 0 0 8px #00ffc8;
+      vertical-align: text-bottom;
+      animation: blink 0.85s step-end infinite;
+      margin-left: 2px;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ─── AUDIO PLAYER ─── */
+    .audio-card {
+      width: 100%;
+      padding: 28px 32px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(180,0,255,0.25);
+      border-radius: 2px;
+      position: relative;
+      box-shadow: 0 0 20px rgba(180,0,255,0.08), inset 0 0 30px rgba(180,0,255,0.03);
+    }
+    .audio-card::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px;
+      width: 22px; height: 22px;
+      border-top: 2px solid #b400ff;
+      border-left: 2px solid #b400ff;
+      box-shadow: -2px -2px 14px rgba(180,0,255,0.7);
+    }
+    .audio-card::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; right: -1px;
+      width: 22px; height: 22px;
+      border-bottom: 2px solid #b400ff;
+      border-right: 2px solid #b400ff;
+      box-shadow: 2px 2px 14px rgba(180,0,255,0.7);
+    }
+    .audio-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.4em;
+      color: rgba(180,0,255,0.6);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .audio-controls { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+    .play-btn {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: 1.5px solid #b400ff;
+      background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 16px rgba(180,0,255,0.5), inset 0 0 12px rgba(180,0,255,0.1);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .play-btn:hover { box-shadow: 0 0 28px rgba(180,0,255,0.9); background: rgba(180,0,255,0.1); }
+    .play-btn svg { fill: #b400ff; width: 18px; height: 18px; filter: drop-shadow(0 0 6px #b400ff); }
+    .audio-meta { display: flex; flex-direction: column; gap: 3px; }
+    .audio-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: #b400ff;
+      text-shadow: 0 0 10px rgba(180,0,255,0.8);
+      letter-spacing: 0.1em;
+    }
+    .audio-status {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.65rem;
+      color: rgba(180,0,255,0.5);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .audio-time { font-family: 'Orbitron', monospace; font-size: 0.52rem; color: rgba(180,0,255,0.5); min-width: 34px; }
+    .progress-bar {
+      flex: 1; height: 3px;
+      background: rgba(180,0,255,0.15);
+      border-radius: 2px; cursor: pointer; position: relative;
+    }
+    .progress-fill {
+      height: 100%; background: #b400ff; border-radius: 2px; width: 0%;
+      box-shadow: 0 0 8px rgba(180,0,255,0.8); position: relative;
+    }
+    .progress-fill::after {
+      content: ''; position: absolute;
+      right: -4px; top: 50%; transform: translateY(-50%);
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #b400ff; box-shadow: 0 0 10px rgba(180,0,255,1);
+    }
+    .volume-row { display: flex; align-items: center; gap: 8px; }
+    .vol-icon svg { fill: rgba(180,0,255,0.5); width: 14px; height: 14px; }
+    input[type=range].vol-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 80px; height: 3px;
+      background: rgba(180,0,255,0.2); border-radius: 2px; outline: none; cursor: pointer;
+    }
+    input[type=range].vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 10px; height: 10px;
+      border-radius: 50%; background: #b400ff; box-shadow: 0 0 8px rgba(180,0,255,0.9);
+    }
+    .wave-bars { display: flex; align-items: flex-end; gap: 3px; height: 24px; margin-left: auto; }
+    .wave-bar { width: 3px; background: #b400ff; border-radius: 2px; box-shadow: 0 0 6px rgba(180,0,255,0.7); height: 4px; }
+    .wave-bar.playing { animation: wave-anim var(--dur,0.6s) ease-in-out infinite alternate; }
+    @keyframes wave-anim { from{height:3px} to{height:var(--h,20px)} }
+
+    .audio-upload-row { margin-top: 14px; }
+    .upload-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.25em;
+      color: rgba(180,0,255,0.5);
+      background: transparent;
+      border: 1px dashed rgba(180,0,255,0.3);
+      padding: 7px 14px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .upload-btn:hover { color: #b400ff; border-color: rgba(180,0,255,0.7); box-shadow: 0 0 10px rgba(180,0,255,0.3); }
+  </style>
+</head>
+<body>
+
+<!-- Scanlines -->
+<div id="scanlines"></div>
+
+<!-- Background Video -->
+<video id="bg-video" src="https://files.catbox.moe/ig594x.mp4" autoplay loop muted playsinline></video>
+
+<!-- Entrance Screen -->
+<div id="entrance" onclick="openPortfolio()">
+  <div class="tap-ring">
+    <span class="tap-label">TAP TO<br>BEGIN</span>
+  </div>
+  <span class="tap-sub">portfolio loading</span>
+</div>
+
+<!-- Portfolio Screen (fade-in overlay, replaced after transition) -->
+<div id="portfolio">
+  <div class="card">
+    <div class="card-corner-br"></div>
+    <div class="card-corner-bl"></div>
+    <div class="avatar-wrap">
+      <div class="avatar"><img src="https://files.catbox.moe/ned8ri.png" alt="SachuZeroTrust" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:relative;z-index:1;"/></div>
+    </div>
+    <div class="name">SachuZeroTrust</div>
+    <div class="tagline">Developer</div>
+    <div class="divider"></div>
+    <div class="links">
+
+      <a class="link-row" href="https://github.com/sachubot" target="_blank">
+        <div class="link-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div>
+        <div class="link-info"><span class="link-platform">GitHub</span><span class="link-value">github.com/sachubot</span></div>
+        <span class="link-arrow">›</span>
+      </a>
+
+      <a class="link-row" href="mailto:elzaanetdisilva@gmail.com">
+        <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+        <div class="link-info"><span class="link-platform">Email</span><span class="link-value">elzaanetdisilva@gmail.com</span></div>
+        <span class="link-arrow">›</span>
+      </a>
+
+      <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+        <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></div>
+        <div class="link-info"><span class="link-platform">Instagram</span><span class="link-value dimmed">coming soon</span></div>
+      </a>
+
+      <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+        <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+        <div class="link-info"><span class="link-platform">WhatsApp</span><span class="link-value dimmed">coming soon</span></div>
+      </a>
+
+      <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+        <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+        <div class="link-info"><span class="link-platform">Twitter / X</span><span class="link-value dimmed">coming soon</span></div>
+      </a>
+
+      <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+        <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg></div>
+        <div class="link-info"><span class="link-platform">Spotify</span><span class="link-value dimmed">coming soon</span></div>
+      </a>
+
+    </div>
+
+    <div class="footer">SachuZeroTrust &nbsp;·&nbsp; 2025</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCROLLABLE MAIN — shown after entrance
+     ═══════════════════════════════════════════ -->
+<main id="main-scroll" style="display:none; position:relative; z-index:50; width:100%; min-height:400vh;">
+
+  <!-- ── PAGE 1: Profile card ── -->
+  <section id="sec1" style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 24px 40px;">
+    <div class="card" style="animation:card-in 0.8s cubic-bezier(0.16,1,0.3,1) both;">
+      <div class="card-corner-br"></div>
+      <div class="card-corner-bl"></div>
+      <div class="avatar-wrap">
+        <div class="avatar"><img src="https://files.catbox.moe/ned8ri.png" alt="SachuZeroTrust" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:relative;z-index:1;"/></div>
+      </div>
+      <div class="name">SachuZeroTrust</div>
+      <div class="tagline">Developer</div>
+      <div class="divider"></div>
+      <div class="links">
+
+        <a class="link-row" href="https://github.com/sachubot" target="_blank">
+          <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div>
+          <div class="link-info"><span class="link-platform">GitHub</span><span class="link-value">github.com/sachubot</span></div>
+          <span class="link-arrow">›</span>
+        </a>
+
+        <a class="link-row" href="mailto:elzaanetdisilva@gmail.com">
+          <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+          <div class="link-info"><span class="link-platform">Email</span><span class="link-value">elzaanetdisilva@gmail.com</span></div>
+          <span class="link-arrow">›</span>
+        </a>
+
+        <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+          <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></div>
+          <div class="link-info"><span class="link-platform">Instagram</span><span class="link-value dimmed">coming soon</span></div>
+        </a>
+
+        <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+          <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+          <div class="link-info"><span class="link-platform">WhatsApp</span><span class="link-value dimmed">coming soon</span></div>
+        </a>
+
+        <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+          <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
+          <div class="link-info"><span class="link-platform">Twitter / X</span><span class="link-value dimmed">coming soon</span></div>
+        </a>
+
+        <a class="link-row" href="#" onclick="return false;" style="cursor:default;">
+          <div class="link-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg></div>
+          <div class="link-info"><span class="link-platform">Spotify</span><span class="link-value dimmed">coming soon</span></div>
+        </a>
+
+      </div>
+      <div class="footer">SachuZeroTrust &nbsp;·&nbsp; 2025</div>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="scroll-hint" style="opacity:1;">
+      <span>scroll down</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- ── PAGE 2: Disclaimer + Audio ── -->
+  <section id="sec2" style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 24px;">
+    <div style="width:100%;max-width:480px;display:flex;flex-direction:column;gap:28px;">
+
+      <!-- Disclaimer -->
+      <div class="desc-card">
+        <div class="desc-label">// disclaimer</div>
+        <div class="desc-text" id="typewriter-text"></div><span class="cursor-blink" id="type-cursor"></span>
+      </div>
+
+      <!-- Audio Player -->
+      <div class="audio-card">
+        <div class="audio-label">// audio_stream</div>
+        <div class="audio-controls">
+          <button class="play-btn" id="playBtn" onclick="togglePlay()">
+            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div class="audio-meta">
+            <span class="audio-title" id="audioTitle">TIMELESS</span>
+            <span class="audio-status" id="audioStatus">The Weeknd</span>
+          </div>
+          <div class="wave-bars" id="waveBars">
+            <div class="wave-bar" style="--dur:0.5s;--h:18px"></div>
+            <div class="wave-bar" style="--dur:0.7s;--h:14px"></div>
+            <div class="wave-bar" style="--dur:0.4s;--h:22px"></div>
+            <div class="wave-bar" style="--dur:0.6s;--h:10px"></div>
+            <div class="wave-bar" style="--dur:0.8s;--h:20px"></div>
+            <div class="wave-bar" style="--dur:0.45s;--h:16px"></div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <span class="audio-time" id="curTime">0:00</span>
+          <div class="progress-bar" id="progressBar" onclick="seekAudio(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span class="audio-time" id="durTime">0:00</span>
+        </div>
+        <div class="volume-row">
+          <span class="vol-icon"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></span>
+          <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(this.value)"/>
+        </div>
+        <div class="audio-upload-row">
+          <input type="file" id="audioFile" accept="audio/*" style="display:none" onchange="loadAudio(this)"/>
+          <button class="upload-btn" onclick="document.getElementById('audioFile').click()">+ load audio file</button>
+        </div>
+      </div>
+
+      <!-- Scroll hint to page 3 -->
+      <div class="scroll-hint" style="opacity:1;margin-top:8px;">
+        <span>scroll down</span>
+        <div class="scroll-arrow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PAGE 3: Skills / Stats ── -->
+  <section id="sec3" style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 24px 80px;">
+    <div style="width:100%;max-width:480px;display:flex;flex-direction:column;gap:28px;">
+
+      <!-- Skills Card -->
+      <div class="desc-card" style="border-color:rgba(255,80,200,0.25); box-shadow:0 0 20px rgba(255,80,200,0.08);">
+        <style>
+          .desc-card.pink::before { border-color:#ff50c8; box-shadow:-2px -2px 14px rgba(255,80,200,0.7); }
+          .desc-card.pink::after  { border-color:#ff50c8; box-shadow: 2px  2px 14px rgba(255,80,200,0.7); }
+        </style>
+        <div class="desc-label" style="color:rgba(255,80,200,0.6);">// skill_matrix</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px;">
+          <div class="skill-row" data-pct="88">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Orbitron',monospace;font-size:0.65rem;color:#ff50c8;text-shadow:0 0 8px rgba(255,80,200,0.8);letter-spacing:0.1em;">WEB DEVELOPMENT</span>
+              <span style="font-family:'Orbitron',monospace;font-size:0.6rem;color:rgba(255,80,200,0.5);">88%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,80,200,0.12);border-radius:2px;">
+              <div class="skill-bar" data-w="88" style="height:100%;width:0%;background:#ff50c8;border-radius:2px;box-shadow:0 0 8px rgba(255,80,200,0.8);transition:width 1.4s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+          </div>
+          <div class="skill-row" data-pct="75">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Orbitron',monospace;font-size:0.65rem;color:#ff50c8;text-shadow:0 0 8px rgba(255,80,200,0.8);letter-spacing:0.1em;">PYTHON / SCRIPTING</span>
+              <span style="font-family:'Orbitron',monospace;font-size:0.6rem;color:rgba(255,80,200,0.5);">75%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,80,200,0.12);border-radius:2px;">
+              <div class="skill-bar" data-w="75" style="height:100%;width:0%;background:#ff50c8;border-radius:2px;box-shadow:0 0 8px rgba(255,80,200,0.8);transition:width 1.6s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+          </div>
+          <div class="skill-row" data-pct="70">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Orbitron',monospace;font-size:0.65rem;color:#ff50c8;text-shadow:0 0 8px rgba(255,80,200,0.8);letter-spacing:0.1em;">CYBERSECURITY</span>
+              <span style="font-family:'Orbitron',monospace;font-size:0.6rem;color:rgba(255,80,200,0.5);">70%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,80,200,0.12);border-radius:2px;">
+              <div class="skill-bar" data-w="70" style="height:100%;width:0%;background:#ff50c8;border-radius:2px;box-shadow:0 0 8px rgba(255,80,200,0.8);transition:width 1.8s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+          </div>
+          <div class="skill-row" data-pct="82">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+              <span style="font-family:'Orbitron',monospace;font-size:0.65rem;color:#ff50c8;text-shadow:0 0 8px rgba(255,80,200,0.8);letter-spacing:0.1em;">UI / UX DESIGN</span>
+              <span style="font-family:'Orbitron',monospace;font-size:0.6rem;color:rgba(255,80,200,0.5);">82%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,80,200,0.12);border-radius:2px;">
+              <div class="skill-bar" data-w="82" style="height:100%;width:0%;background:#ff50c8;border-radius:2px;box-shadow:0 0 8px rgba(255,80,200,0.8);transition:width 1.5s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Card -->
+      <div class="audio-card" style="border-color:rgba(255,200,0,0.25);box-shadow:0 0 20px rgba(255,200,0,0.06);">
+        <div class="audio-label" style="color:rgba(255,200,0,0.6);">// current_status</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#ffe000;box-shadow:0 0 10px rgba(255,224,0,0.9);animation:pulse-dot 1.8s ease-in-out infinite;flex-shrink:0;"></div>
+            <span style="font-family:'Orbitron',monospace;font-size:0.72rem;color:#ffe000;text-shadow:0 0 10px rgba(255,224,0,0.8);letter-spacing:0.08em;">OPEN TO COLLABORATE</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#00ffc8;box-shadow:0 0 10px rgba(0,255,200,0.9);flex-shrink:0;"></div>
+            <span style="font-family:'Orbitron',monospace;font-size:0.72rem;color:#00ffc8;text-shadow:0 0 10px rgba(0,255,200,0.8);letter-spacing:0.08em;">BUILDING IN PUBLIC</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#b400ff;box-shadow:0 0 10px rgba(180,0,255,0.9);flex-shrink:0;"></div>
+            <span style="font-family:'Orbitron',monospace;font-size:0.72rem;color:#b400ff;text-shadow:0 0 10px rgba(180,0,255,0.8);letter-spacing:0.08em;">LEARNING EVERY DAY</span>
+          </div>
+        </div>
+      </div>
+      <style>
+        @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:0.6} }
+      </style>
+
+      <!-- Scroll hint to page 4 -->
+      <div class="scroll-hint" style="opacity:1;margin-top:8px;">
+        <span>scroll down</span>
+        <div class="scroll-arrow"></div>
+      </div>
+
+      <div class="footer" style="margin-top:10px;">SachuZeroTrust &nbsp;·&nbsp; 2025</div>
+    </div>
+  </section>
+
+  <!-- ── PAGE 4: Projects ── -->
+  <section id="sec4" style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 24px 80px;">
+    <div style="width:100%;max-width:480px;display:flex;flex-direction:column;gap:28px;">
+
+      <!-- Section Label -->
+      <div style="font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:0.35em;color:rgba(0,255,200,0.6);text-transform:uppercase;text-align:center;text-shadow:0 0 10px rgba(0,255,200,0.4);">// project_log</div>
+
+      <!-- Project Card 1 -->
+      <div class="desc-card" style="border-color:rgba(0,255,200,0.2);box-shadow:0 0 20px rgba(0,255,200,0.06);padding:22px 24px;">
+        <style>
+          .proj-tag { display:inline-block; font-family:'Orbitron',monospace; font-size:0.52rem; letter-spacing:0.2em; color:#00ffc8; border:1px solid rgba(0,255,200,0.3); padding:2px 8px; border-radius:2px; margin-right:6px; margin-top:6px; }
+          .proj-title { font-family:'Orbitron',monospace; font-size:0.82rem; font-weight:700; color:#00ffc8; text-shadow:0 0 10px rgba(0,255,200,0.8); letter-spacing:0.08em; }
+          .proj-desc { font-family:'Rajdhani',sans-serif; font-size:0.82rem; color:rgba(255,255,255,0.55); line-height:1.6; margin-top:8px; }
+          .proj-link { font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:0.15em; color:rgba(0,255,200,0.7); text-decoration:none; border-bottom:1px solid rgba(0,255,200,0.25); padding-bottom:1px; transition:color 0.2s,border-color 0.2s; }
+          .proj-link:hover { color:#00ffc8; border-color:#00ffc8; }
+          .proj-tag-purple { display:inline-block; font-family:'Orbitron',monospace; font-size:0.52rem; letter-spacing:0.2em; color:#a064ff; border:1px solid rgba(120,80,255,0.3); padding:2px 8px; border-radius:2px; margin-right:6px; margin-top:6px; }
+          .proj-link-purple { font-family:'Orbitron',monospace; font-size:0.6rem; letter-spacing:0.15em; color:rgba(160,100,255,0.7); text-decoration:none; border-bottom:1px solid rgba(120,80,255,0.25); padding-bottom:1px; transition:color 0.2s,border-color 0.2s; }
+          .proj-link-purple:hover { color:#a064ff; border-color:#a064ff; }
+        </style>
+        <div class="proj-title">SACHUBOT</div>
+        <div class="proj-desc">A multi-purpose Discord bot with moderation tools, utility commands, and custom automation features built for communities.</div>
+        <div style="margin-top:10px;">
+          <span class="proj-tag">Python</span>
+          <span class="proj-tag">Discord.py</span>
+          <span class="proj-tag">Bot</span>
+        </div>
+        <div style="margin-top:14px;">
+          <a class="proj-link" href="https://github.com/sachubot" target="_blank">view on github ›</a>
+        </div>
+      </div>
+
+      <!-- Project Card 2 -->
+      <div class="desc-card" style="border-color:rgba(120,80,255,0.2);box-shadow:0 0 20px rgba(120,80,255,0.06);padding:22px 24px;">
+        <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:#a064ff;text-shadow:0 0 10px rgba(120,80,255,0.8);letter-spacing:0.08em;">ZERO TRUST PORTFOLIO</div>
+        <div class="proj-desc">This very site — a neon cyberpunk developer portfolio with entrance animation, audio player, skill matrix, and full-page scroll experience.</div>
+        <div style="margin-top:10px;">
+          <span class="proj-tag-purple">HTML</span>
+          <span class="proj-tag-purple">CSS</span>
+          <span class="proj-tag-purple">JavaScript</span>
+        </div>
+        <div style="margin-top:14px;">
+          <a class="proj-link-purple" href="https://github.com/sachubot" target="_blank">view on github ›</a>
+        </div>
+      </div>
+
+      <!-- More coming soon -->
+      <div style="text-align:center;padding:18px 0;">
+        <div style="font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:0.3em;color:rgba(255,255,255,0.2);text-transform:uppercase;">more projects incoming...</div>
+        <div style="margin-top:10px;height:1px;background:linear-gradient(to right,transparent,rgba(255,255,255,0.15),transparent);"></div>
+      </div>
+
+      <div class="footer" style="margin-top:4px;">SachuZeroTrust &nbsp;·&nbsp; 2025</div>
+    </div>
+  </section>
+
+</main>
+
+<audio id="audioEl"></audio>
+
+<script>
+  /* ─── OPEN PORTFOLIO ─── */
+  function openPortfolio() {
+    const entrance = document.getElementById('entrance');
+    const portfolio = document.getElementById('portfolio');
+    const main     = document.getElementById('main-scroll');
+    const video    = document.getElementById('bg-video');
+
+    video.muted = false;
+    video.volume = 0.7;
+    video.play().catch(() => {});
+
+    entrance.classList.add('fade-out');
+    setTimeout(() => {
+      entrance.style.display = 'none';
+      portfolio.style.display = 'none';
+
+      main.style.display = 'block';
+      document.body.style.overflowY = 'auto';
+
+      setTimeout(startTypewriter, 800);
+      setTimeout(animateBars, 1200);
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') openPortfolio();
+  });
+
+  /* ─── TYPEWRITER ─── */
+  const fullText = "This website is intended for educational purposes only.\nThe developer is not responsible for any misuse of the information or tools provided on this site.";
+  let typeIndex = 0;
+  function startTypewriter() {
+    const el = document.getElementById('typewriter-text');
+    if (typeIndex < fullText.length) {
+      const ch = fullText[typeIndex];
+      el.textContent += ch === '\n' ? '\n' : ch;
+      typeIndex++;
+      setTimeout(startTypewriter, ch === '\n' ? 280 : 40 + Math.random() * 28);
+    }
+  }
+
+  /* ─── SKILL BARS (animate on scroll) ─── */
+  function animateBars() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.querySelectorAll('.skill-bar').forEach(bar => {
+            bar.style.width = bar.dataset.w + '%';
+          });
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('#sec3').forEach(s => observer.observe(s));
+  }
+
+  /* ─── AUDIO ─── */
+  const audioEl = document.getElementById('audioEl');
+  let isPlaying = false;
+  audioEl.volume = 0.8;
+
+  function loadAudio(input) {
+    const file = input.files[0];
+    if (!file) return;
+    audioEl.src = URL.createObjectURL(file);
+    audioEl.load();
+    document.getElementById('audioTitle').textContent = file.name.replace(/\.[^/.]+$/, "").toUpperCase();
+    document.getElementById('audioStatus').textContent = 'ready';
+    isPlaying = false;
+    updatePlayIcon();
+  }
+
+  function togglePlay() {
+    if (!audioEl.src) return;
+    isPlaying ? audioEl.pause() : audioEl.play();
+    isPlaying = !isPlaying;
+    updatePlayIcon();
+    updateWave();
+  }
+
+  function updatePlayIcon() {
+    document.getElementById('playIcon').innerHTML = isPlaying
+      ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
+      : '<path d="M8 5v14l11-7z"/>';
+    if (audioEl.src) {
+      document.getElementById('audioStatus').textContent = isPlaying ? 'playing' : 'paused';
+    }
+  }
+
+  function updateWave() {
+    document.querySelectorAll('.wave-bar').forEach(b => isPlaying ? b.classList.add('playing') : b.classList.remove('playing'));
+  }
+
+  audioEl.addEventListener('timeupdate', () => {
+    const cur = audioEl.currentTime, dur = audioEl.duration || 0;
+    document.getElementById('curTime').textContent = fmt(cur);
+    document.getElementById('durTime').textContent = fmt(dur);
+    document.getElementById('progressFill').style.width = dur ? (cur/dur*100)+'%' : '0%';
+  });
+
+  audioEl.addEventListener('ended', () => { isPlaying = false; updatePlayIcon(); updateWave(); });
+
+  function fmt(s) {
+    if (!s || isNaN(s)) return '0:00';
+    return Math.floor(s/60)+':'+(Math.floor(s%60)<10?'0':'')+Math.floor(s%60);
+  }
+
+  function seekAudio(e) {
+    if (!audioEl.duration) return;
+    const bar = document.getElementById('progressBar');
+    const rect = bar.getBoundingClientRect();
+    audioEl.currentTime = ((e.clientX - rect.left) / rect.width) * audioEl.duration;
+  }
+
+  function setVolume(val) { audioEl.volume = val; }
+</script>
+</body>
+</html>
